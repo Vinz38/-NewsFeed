@@ -13,19 +13,13 @@ def abort_if_news_not_found(news_id):
 
 parser = reqparse.RequestParser()
 parser.add_argument('link_news', required=True, help="Link cannot be blank!")
-parser.add_argument('users', required=True, help="Users cannot be blank!")
 parser.add_argument('categories', required=True,
                     help="Categories cannot be blank!")
+parser.add_argument('live_time', required=True,
+                    help="Live time cannot be blank!")
 
 
 class NewsResource(Resource):
-    def get(self, news_id):
-        abort_if_news_not_found(news_id)
-        session = db_session.create_session()
-        news = session.query(News).get(news_id)
-        return news.to_dict(
-            only=('id', 'link_news', 'users', 'categories'))
-
     def delete(self, news_id):
         abort_if_news_not_found(news_id)
         session = db_session.create_session()
@@ -40,14 +34,14 @@ class NewsResource(Resource):
         news = session.query(News).get(news_id)
         if news:
             news.link_news = args['link_news']
-            news.users = args['users']
             news.categories = args['categories']
+            news.live_time = args['live_time']
         else:
             news = News(
                 id=news_id,
                 link_news=args['link_news'],
-                users=args['users'],
-                categories=args['categories']
+                categories=args['categories'],
+                live_time=args['live_time']
             )
             session.add(news)
         session.commit()
@@ -55,19 +49,21 @@ class NewsResource(Resource):
 
 
 class NewsListResource(Resource):
-    def get(self):
+    def get(self, category):
         session = db_session.create_session()
         news = session.query(News).all()
-        return flask.jsonify({'news': [item.to_dict(
-            only=('id', 'link_news', 'users', 'categories')) for item in news]})
+        if news.categories in category:
+            return flask.jsonify({'news': [item.to_dict(
+                only=('link_news', 'categories', 'live_time')) for item in news]})
+        return flask.jsonify({'news': []})
 
     def post(self):
         args = parser.parse_args()
         session = db_session.create_session()
         news = News(
             link_news=args['link_news'],
-            users=args['users'],
-            categories=args['categories']
+            categories=args['categories'],
+            live_time=args['live_time']
         )
         session.add(news)
         session.commit()

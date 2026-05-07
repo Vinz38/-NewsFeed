@@ -5,16 +5,6 @@ from sqlalchemy import orm
 from sqlalchemy_serializer import SerializerMixin
 
 
-liu_table = sqlalchemy.Table(
-    'liu',
-    SqlAlchemyBase.metadata,
-    sqlalchemy.Column('news', sqlalchemy.Integer,
-                      sqlalchemy.ForeignKey('news.id')),
-    sqlalchemy.Column('users', sqlalchemy.Integer,
-                      sqlalchemy.ForeignKey('users.id'))
-)
-
-
 class User(SqlAlchemyBase, SerializerMixin):
     __tablename__ = "users"
 
@@ -24,6 +14,9 @@ class User(SqlAlchemyBase, SerializerMixin):
     name = sqlalchemy.Column(sqlalchemy.String, nullable=False)
     midlename = sqlalchemy.Column(sqlalchemy.String, nullable=False)
     email = sqlalchemy.Column(sqlalchemy.String, nullable=False)
+    categories = orm.relationship("Category",
+                                  secondary="association",
+                                  backref="users")
     phonenumber = sqlalchemy.Column(sqlalchemy.String, nullable=True)
     hashed_password = sqlalchemy.Column(sqlalchemy.String, nullable=False)
 
