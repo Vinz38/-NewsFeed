@@ -14,6 +14,6 @@ class News(SqlAlchemyBase, SerializerMixin):
     id = sqlalchemy.Column(
         sqlalchemy.Integer, primary_key=True, autoincrement=True)
     categories = sqlalchemy.Column(sqlalchemy.String, nullable=False)
-    link_news = sqlalchemy.Column(sqlalchemy.String, nullable=False)
+    link_news = sqlalchemy.Column(sqlalchemy.String, nullable=False, unique=True)
     live_time = sqlalchemy.Column(sqlalchemy.DateTime, default=default_live_time)
     dob = sqlalchemy.Column(sqlalchemy.DateTime, default=sqlalchemy.func.now())
