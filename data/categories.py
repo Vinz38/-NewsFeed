@@ -6,10 +6,10 @@ from . db_session import SqlAlchemyBase
 association_table = sqlalchemy.Table(
     'association',
     SqlAlchemyBase.metadata,
-    sqlalchemy.Column('news', sqlalchemy.Integer,
-                      sqlalchemy.ForeignKey('news.id')),
     sqlalchemy.Column('category', sqlalchemy.Integer,
-                      sqlalchemy.ForeignKey('categories.id'))
+                      sqlalchemy.ForeignKey('categories.id')),
+    sqlalchemy.Column('users', sqlalchemy.Integer,
+                      sqlalchemy.ForeignKey('users.id'))
 )
 
 
