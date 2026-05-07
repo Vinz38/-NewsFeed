@@ -16,7 +16,7 @@ app.config['JWT_HEADER_NAME'] = "authorization"
 jwt = JWTManager(app)
 
 api.add_resource(NewsResource, '/api/news/<int:news_id>')
-api.add_resource(NewsListResource, '/api/news/<list:category>')
+api.add_resource(NewsListResource, '/api/news/<string:category>')
 
 db_session.global_init("db/newsfeed.db")
 db_sess = db_session.create_session()
