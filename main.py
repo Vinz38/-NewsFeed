@@ -6,7 +6,6 @@ from flask_restful import Api
 from flask_jwt_extended import JWTManager
 from flask_restful_MODELS.news_flaskrestful_MODEL import NewsResource, NewsListResource
 
-
 app = Flask(__name__)
 api = Api(app)
 app.config['JWT_SECRET_KEY'] = 'super-secret'  # Change this!
@@ -17,6 +16,7 @@ jwt = JWTManager(app)
 
 api.add_resource(NewsResource, '/api/news/<int:news_id>')
 api.add_resource(NewsListResource, '/api/news/<string:category>')
-
-db_session.global_init("db/newsfeed.db")
-db_sess = db_session.create_session()
+if __name__ == "__main__":
+    db_session.global_init("db/newsfeed.db")
+    db_sess = db_session.create_session()
+    app.run(port=5000, host='127.0.0.1')

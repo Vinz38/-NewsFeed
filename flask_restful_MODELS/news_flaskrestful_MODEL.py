@@ -15,8 +15,7 @@ parser = reqparse.RequestParser()
 parser.add_argument('link_news', required=True, help="Link cannot be blank!")
 parser.add_argument('categories', required=True,
                     help="Categories cannot be blank!")
-parser.add_argument('live_time', required=True,
-                    help="Live time cannot be blank!")
+parser.add_argument('live_time', help="Live time cannot be blank!")
 
 
 class NewsResource(Resource):
@@ -59,7 +58,7 @@ class NewsListResource(Resource):
                 only=('link_news', 'categories', 'live_time')) for item in news]})
         return flask.jsonify({'news': []})
 
-    def post(self):
+    def post(self, category):
         args = parser.parse_args()
         session = db_session.create_session()
         news = News(
