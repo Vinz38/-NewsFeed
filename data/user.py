@@ -17,8 +17,16 @@ class User(SqlAlchemyBase, SerializerMixin):
     categories = orm.relationship("Category",
                                   secondary="association",
                                   backref="users")
-    phonenumber = sqlalchemy.Column(sqlalchemy.String, nullable=True)
+    phonenumber = sqlalchemy.Column('phonenumber', sqlalchemy.String, nullable=True)
     hashed_password = sqlalchemy.Column(sqlalchemy.String, nullable=False)
+
+    @property
+    def phone_number(self):
+        return self.phonenumber
+
+    @phone_number.setter
+    def phone_number(self, value):
+        self.phonenumber = value
 
     def set_password(self, password):
         self.hashed_password = generate_password_hash(password)
