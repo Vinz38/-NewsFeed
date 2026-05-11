@@ -10,6 +10,7 @@ def abort_if_news_not_found(news_id):
     if not news:
         abort(404, message=f"News {news_id} not found")
 
+
 def not_unique_news(link):
     session = db_session.create_session()
     news = session.query(News).filter(News.link_news == link).all()

@@ -1,15 +1,17 @@
 from bs4 import BeautifulSoup
 import requests
 
-TYPE_NEWS = ['technology_and_media', 'sport', 'economics', 'finances', 'politics']
+TYPE_NEWS = ['technology_and_media', 'sport', 'economics', 'finances', 'politics', 'films']
 
 
-def get_list__link_news(type_news):
+def get_list_link_news(type_news):
+    news_list = []
     session = requests.Session()
     html_doc = session.get(url=f"https://www.rbc.ru/rubric/{type_news}/").content.decode('utf-8')
     soup = BeautifulSoup(html_doc, 'html.parser')
     links = soup.find_all('div', class_='material-card')
-    news_list = []
+    if type_news == "films":
+        pass
     for i in links:
         link = i.get('data-metronome-href')
         if link:
@@ -26,7 +28,7 @@ def get_list__link_news(type_news):
 
 if __name__ == "__main__":
     for a in TYPE_NEWS:
-        for i in get_list__link_news(a):
+        for i in get_list_link_news(a):
             resp = requests.post('http://127.0.0.1:5000/api/news/{}'.format(a), json={
                 "categories": a,
                 "link_news": i,
