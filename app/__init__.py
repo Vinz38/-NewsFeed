@@ -1,8 +1,9 @@
 from datetime import timedelta
-
 import requests
 from flask import Flask
 from app.roots import main_blueprint
+from data import db_session
+from data.user import User
 from .api.init_api import api_blueprint
 from flask_jwt_extended import JWTManager
 from flask_login import login_user, current_user, LoginManager, logout_user, login_required
@@ -22,7 +23,8 @@ def create_app():
 
     @login_manager.user_loader
     def load_user(user_id):
-        return requests.get('http://127.0.0.1:5000/api/users/{}'.format(user_id)).json()
+        db_sess = db_session.create_session()
+        return db_sess.query(User).get(int(user_id))
 
     app.register_blueprint(main_blueprint)
     app.register_blueprint(api_blueprint)
