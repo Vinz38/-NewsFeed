@@ -13,7 +13,7 @@ class CategoryListResource(Resource):
         session = db_session.create_session()
         categories = session.query(Category).all()
         return flask.jsonify({'categories': [item.to_dict(
-            only=('name', 'id')) for item in categories]})
+            only=('id', 'name')) for item in categories]})
 
     def post(self):
         parser = reqparse.RequestParser()
