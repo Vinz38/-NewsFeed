@@ -1,7 +1,7 @@
 {% extends "index.html" %}
 
 {% block content %}
-    <h1>Авторизация</h1>
+    <h1>{{ title }}</h1>
     <form action="" method="post">
         {{ form.hidden_tag() }}
         <p>
@@ -41,6 +41,15 @@
             {% endfor %}
         </p>
         <p>
+            {{ form.password.label }}<br>
+            {{ form.password(class="form-control", type="password") }}<br>
+            {% for error in form.password.errors %}
+                <div class="alert alert-danger" role="alert">
+                    {{ error }}
+                </div>
+            {% endfor %}
+        </p>
+        <p>
             {{ form.phone_number.label }}<br>
             {{ form.phone_number(class="form-control", type="phone_number") }}<br>
             {% for error in form.phone_number.errors %}
@@ -48,6 +57,15 @@
                     {{ error }}
                 </div>
             {% endfor %}
+        </p>
+        <p>
+        {{ form.categories.label }}<br>
+        {{ form.categories(class="form-control") }}<br>
+        {% for error in form.categories.errors %}
+            <p class="alert alert-danger" role="alert">
+                {{ error }}
+            </p>
+        {% endfor %}
         </p>
         <p>{{ form.submit(type="submit", class="btn btn-primary") }}</p>
         <div>{{ message }}</div>

@@ -19,9 +19,11 @@ def create_app():
     app.config['JWT_HEADER_NAME'] = "authorization"
     jwt = JWTManager(app)
     login_manager.init_app(app)
+
     @login_manager.user_loader
     def load_user(user_id):
         return requests.get('http://127.0.0.1:5000/api/users/{}'.format(user_id)).json()
+
     app.register_blueprint(main_blueprint)
     app.register_blueprint(api_blueprint)
     return app

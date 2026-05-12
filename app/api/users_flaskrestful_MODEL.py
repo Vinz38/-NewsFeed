@@ -1,5 +1,8 @@
+from email.policy import default
+
 from flask_restful import Resource, reqparse, abort
 from data import db_session
+from data.categories import Category
 from data.user import User
 from flask_jwt_extended import create_access_token
 import flask
@@ -10,15 +13,14 @@ parser.add_argument('name', required=True, help="Name cannot be blank!")
 parser.add_argument('midlename', required=True,
                     help="Midlename cannot be blank!")
 parser.add_argument('email', required=True, help="Email cannot be blank!")
-parser.add_argument('password', required=True,
+parser.add_argument('hashed_password', required=True,
                     help="Password cannot be blank!")
 parser.add_argument('phone_number', help="Phone number cannot be blank!")
-parser.add_argument('categories', required=True,
-                    help="Categories cannot be blank!")
+parser.add_argument('categories', required=False, type=list, location='json', default=[])
 
 login_parser = reqparse.RequestParser()
 login_parser.add_argument('email', required=True, help="Email cannot be blank!")
-login_parser.add_argument('password', required=True,
+login_parser.add_argument('hashed_password', required=True,
                           help="Password cannot be blank!")
 
 
@@ -62,19 +64,20 @@ class UserListResource(Resource):
     def post(self):
         args = parser.parse_args()
         session = db_session.create_session()
+        if session.query(User).filter(User.email == args['email']).first():
+            return flask.jsonify({'error': 'Email already exists'}), 400
         user = User(
             surname=args['surname'],
             name=args['name'],
             midlename=args['midlename'],
             email=args['email'],
             phone_number=args['phone_number'],
-            categories=args['categories']
         )
-        if session.query(User).filter(User.email == args['email']).first():
-            return flask.jsonify({'error': 'Email already exists'}), 400
-
-        user.set_password(args['password'])
+        user.set_password(args['hashed_password'])
         session.add(user)
+        categories = args.get('categories', [])
+        if categories:
+            user.categories = session.query(Category).filter(Category.id.in_(categories)).all()
         session.commit()
 
         access_token = create_access_token(identity=user.id)
@@ -94,7 +97,7 @@ class UserLoginResource(Resource):
         args = login_parser.parse_args()
         session = db_session.create_session()
         user = session.query(User).filter(User.email == args['email']).first()
-        if not user or not user.check_password(args['password']):
+        if not user or not user.check_password(args['hashed_password']):
             return flask.jsonify({'error': 'Invalid email or password'}), 401
 
         access_token = create_access_token(identity=user.id)
