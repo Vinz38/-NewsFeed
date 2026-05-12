@@ -5,5 +5,4 @@ app = create_app()
 
 if __name__ == '__main__':
     db_session.global_init("db/newsfeed.db")
-    db_sess = db_session.create_session()
-    app.run()
+    app.run(debug=True)

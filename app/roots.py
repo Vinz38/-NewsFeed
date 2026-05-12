@@ -1,7 +1,7 @@
 import flask
 import requests
-from data import db_session
-from flask import jsonify, make_response, request, render_template, redirect
+import json
+from flask import jsonify, make_response, request, render_template, redirect, flash
 from .forms.login_form import LoginForm
 from .forms.register_form import RegisterForm
 
@@ -29,14 +29,24 @@ def login():
 @main_blueprint.route('/register', methods=['GET', 'POST'])
 def register():
     form = RegisterForm()
+    cat_all = [(k['id'], k['name']) for k in requests.get('http://127.0.0.1:5000/api/categories').json().get('categories', [])]
+    form.categories.choices = cat_all
+    cat_user = []
     if form.validate_on_submit():
-        requests.post('http://127.0.0.1:5000/api/users', json={
+        if form.categories.data:
+            cat_user = form.categories.data
+        resp = requests.post('http://127.0.0.1:5000/api/users', json={
             'surname': form.surname.data,
             'name': form.name.data,
             'midlename': form.midlename.data,
+            'hashed_password' : form.password.data,
             'email': form.email.data,
             'phone_number': form.phone_number.data,
-            'categories' : form.categories.data
+            'categories': form.categories.data
         })
-        return redirect('/login')
+        if resp.status_code in (200, 201):
+            return redirect('/login')
+        else:
+            print(resp.status_code, resp.text)
+            flash(f'Ошибка: {resp.json().get("error", "Неизвестная ошибка")}', 'danger')
     return render_template('register.html', title='Регистрация', form=form)
