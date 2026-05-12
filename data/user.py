@@ -16,7 +16,7 @@ liu_table = sqlalchemy.Table(
 )
 
 
-class User(SqlAlchemyBase, SerializerMixin):
+class User(SqlAlchemyBase, SerializerMixin, UserMixin):
     __tablename__ = "users"
 
     id = sqlalchemy.Column(

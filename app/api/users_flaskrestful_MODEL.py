@@ -81,15 +81,7 @@ class UserListResource(Resource):
         session.commit()
 
         access_token = create_access_token(identity=user.id)
-        return flask.jsonify({
-            'success': 'OK',
-            'access_token': access_token,
-            'user': {
-                'id': user.id,
-                'email': user.email,
-                'phone_number': user.phone_number
-            }
-        })
+        return flask.jsonify({'success': 'OK', 'user_id': user.id})
 
 
 class UserLoginResource(Resource):
@@ -99,6 +91,5 @@ class UserLoginResource(Resource):
         user = session.query(User).filter(User.email == args['email']).first()
         if not user or not user.check_password(args['hashed_password']):
             return flask.jsonify({'error': 'Invalid email or password'}), 401
-
-        access_token = create_access_token(identity=user.id)
-        return flask.jsonify({'access_token': access_token, 'user_id': user.id})
+    
+        return flask.jsonify({'sucsess': 'OK', 'user_id': user.id})

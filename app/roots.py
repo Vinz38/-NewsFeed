@@ -1,12 +1,14 @@
+from flask_jwt_extended import set_access_cookies
+from flask_jwt_extended import verify_jwt_in_request, get_jwt_identity, unset_jwt_cookies
 import flask
 import requests
-import json
 from flask import jsonify, make_response, request, render_template, redirect, flash
-from flask_login import login_user, current_user, login_required, logout_user
 from data import db_session
 from data.user import User
-from .forms.login_form import LoginForm
 from .forms.register_form import RegisterForm
+from flask_jwt_extended import create_access_token
+from .forms.login_form import LoginForm
+
 
 main_blueprint = flask.Blueprint(
     'roots_api',
@@ -18,22 +20,58 @@ main_blueprint = flask.Blueprint(
 @main_blueprint.route('/')
 @main_blueprint.route('/index')
 def index():
-    return render_template('index.html', title="NEWS")
+    user = None
+
+    try:
+        verify_jwt_in_request(optional=True)
+
+        user_id = get_jwt_identity()
+
+        if user_id:
+            db_sess = db_session.create_session()
+            user = db_sess.query(User).get(user_id)
+
+    except Exception as e:
+        print("JWT ERROR:", e)
+
+    return render_template(
+        'index.html',
+        user=user,
+        title="NEWS"
+    )
 
 
 @main_blueprint.route('/login', methods=['GET', 'POST'])
 def login():
     form = LoginForm()
+
     if form.validate_on_submit():
         db_sess = db_session.create_session()
-        user = db_sess.query(User).filter(User.email == form.email.data).first()
-        if user and user.check_password(form.password.data):
-            login_user(user, remember=form.remember_me.data)
-            return redirect("/")
-        return render_template('login.html',
-                               message="Неправильный логин или пароль",
-                               form=form)
-    return render_template('login.html', title='Авторизация', form=form)
+
+        user = db_sess.query(User).filter(
+            User.email == form.email.data
+        ).first()
+
+        if not user or not user.check_password(form.password.data):
+            return render_template(
+                'login.html',
+                message="Неверный логин или пароль",
+                form=form
+            )
+
+        access_token = create_access_token(identity=str(user.id))
+
+        response = redirect('/')
+
+        set_access_cookies(response, access_token)
+
+        return response
+
+    return render_template(
+        'login.html',
+        title='Авторизация',
+        form=form
+    )
 
 
 @main_blueprint.route('/register', methods=['GET', 'POST'])
@@ -59,12 +97,15 @@ def register():
             return redirect('/login')
         else:
             print(resp.status_code, resp.text)
-            flash(f'Ошибка: {resp.json().get("error", "Неизвестная ошибка")}', 'danger')
+            flash(
+                f'Ошибка: {resp.json().get("error", "Неизвестная ошибка")}', 'danger')
     return render_template('register.html', title='Регистрация', form=form)
 
 
 @main_blueprint.route('/logout')
-@login_required
 def logout():
-    logout_user()
-    return redirect("/")
+    response = redirect('/')
+
+    unset_jwt_cookies(response)
+
+    return response
