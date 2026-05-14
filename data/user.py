@@ -5,7 +5,6 @@ from .db_session import SqlAlchemyBase
 from sqlalchemy import orm
 from sqlalchemy_serializer import SerializerMixin
 
-
 liu_table = sqlalchemy.Table(
     'liu',
     SqlAlchemyBase.metadata,
@@ -27,6 +26,7 @@ class User(SqlAlchemyBase, SerializerMixin, UserMixin):
     email = sqlalchemy.Column(sqlalchemy.String, nullable=False)
     phonenumber = sqlalchemy.Column(sqlalchemy.String, nullable=True)
     hashed_password = sqlalchemy.Column(sqlalchemy.String, nullable=False)
+    categories = orm.relationship("Category", secondary="association", backref="users")
 
     @property
     def phone_number(self):

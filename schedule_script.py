@@ -1,3 +1,4 @@
+from random import shuffle
 from bs4 import BeautifulSoup
 import requests
 
@@ -16,17 +17,40 @@ def get_list_link_news(type_news):
         link = i.get('data-metronome-href')
         if link:
             news_list.append(link)
-            """
-            news_doc = session.get(url=link).content.decode('utf-8')
-            soup2 = BeautifulSoup(news_doc, 'html.parser')
-            title = soup2.head.title.text.upper()
-            text = soup2.find('meta', {'itemprop': 'articleBody'})['content']
-            news_list.extend((count, title, text))
-            """
     return news_list
 
 
-if __name__ == "__main__":
+def get_news(href, par):
+    news_doc = requests.get(url=href, timeout=(5, 10)).content.decode('utf-8')
+    soup = BeautifulSoup(news_doc, 'html.parser')
+    if par == "title":
+        title = soup.head.title.text.upper()
+        return title
+    elif par == "text":
+        text = soup.find('meta', {'itemprop': 'articleBody'})['content']
+        return text
+
+
+def get_links(user_id):
+    gl_list = []
+    for i in requests.get('http://127.0.0.1:5000/api/user/category/{}'.format(user_id)).json()['category']:
+        news_resp = requests.get('http://127.0.0.1:5000/api/news/{}'.format(i)).json()
+        for x in news_resp['news']:
+            if len(gl_list) < 15:
+                gl_list.append(x['link_news'])
+            else:
+                break
+    shuffle(gl_list)
+    return gl_list
+
+
+def get_text_and_links(user_id):
+    itog = []
+    for link in get_links(user_id):
+        itog.append((get_news(link, "title"), link))
+    return itog
+
+def main():
     for a in TYPE_NEWS:
         for i in get_list_link_news(a):
             resp = requests.post('http://127.0.0.1:5000/api/news/{}'.format(a), json={
@@ -37,3 +61,7 @@ if __name__ == "__main__":
                 print(f"Ошибка {resp.status_code}: {resp.text}")
             else:
                 print(f"Добавлено: {i}")
+
+
+if __name__ == "__main__":
+    main()

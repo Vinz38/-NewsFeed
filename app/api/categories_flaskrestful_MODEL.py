@@ -1,8 +1,11 @@
 from flask_restful import Resource, reqparse, abort
+from unicodedata import category
+
 from data import db_session
 from data.categories import Category
 import flask
 
+from data.user import User
 
 parser = reqparse.RequestParser()
 parser.add_argument('name', required=True, help="Name cannot be blank!")
@@ -27,3 +30,4 @@ class CategoryListResource(Resource):
         session.add(category)
         session.commit()
         return flask.jsonify({'success': 'OK'})
+

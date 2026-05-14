@@ -45,7 +45,7 @@ class UserResource(Resource):
         session = db_session.create_session()
         user = session.query(User).get(user_id)
         user_data = user.to_dict(
-            only=('surname', 'name', 'midlename', 'email', 'phonenumber', 'categories'))
+            only=('surname', 'name', 'midlename', 'email', 'phonenumber'))
         user_data['phone_number'] = user_data.pop('phonenumber', user.phone_number)
         return flask.jsonify({'user': user_data})
 
@@ -56,7 +56,7 @@ class UserListResource(Resource):
         users = session.query(User).all()
         user_list = []
         for item in users:
-            user_item = item.to_dict(only=('surname', 'name', 'midlename', 'email', 'phonenumber', 'categories'))
+            user_item = item.to_dict(only=('surname', 'name', 'midlename', 'email', 'phonenumber'))
             user_item['phone_number'] = user_item.pop('phonenumber', item.phone_number)
             user_list.append(user_item)
         return flask.jsonify({'users': user_list})
@@ -93,3 +93,10 @@ class UserLoginResource(Resource):
             return flask.jsonify({'error': 'Invalid email or password'}), 401
     
         return flask.jsonify({'sucsess': 'OK', 'user_id': user.id})
+
+class UserCategoryResource(Resource):
+    def get(self, user_id):
+        session = db_session.create_session()
+        user = session.query(User).get(user_id)
+        category_list = [k.name for k in user.categories]
+        return flask.jsonify({'category': category_list})

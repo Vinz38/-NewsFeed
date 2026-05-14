@@ -2,14 +2,13 @@ from flask_jwt_extended import set_access_cookies
 from flask_jwt_extended import verify_jwt_in_request, get_jwt_identity, unset_jwt_cookies
 import flask
 import requests
-from flask import jsonify, make_response, request, render_template, redirect, flash
+from flask import render_template, redirect, flash, request
 from data import db_session
 from data.user import User
 from .forms.register_form import RegisterForm
 from flask_jwt_extended import create_access_token
 from .forms.login_form import LoginForm
-
-
+import schedule_script
 main_blueprint = flask.Blueprint(
     'roots_api',
     __name__,
@@ -21,52 +20,50 @@ main_blueprint = flask.Blueprint(
 @main_blueprint.route('/index')
 def index():
     user = None
-
+    news = []
     try:
         verify_jwt_in_request(optional=True)
-
         user_id = get_jwt_identity()
-
         if user_id:
             db_sess = db_session.create_session()
             user = db_sess.query(User).get(user_id)
-
+            news = schedule_script.get_text_and_links(user_id)
     except Exception as e:
         print("JWT ERROR:", e)
-
     return render_template(
-        'index.html',
+        'main_page.html',
         user=user,
-        title="NEWS"
+        title="NEWS",
+        news=news
     )
 
+@main_blueprint.route('/news_page')
+def news_page():
+    link = request.args.get('link')
+    if not link:
+        return redirect('/')
+    title = schedule_script.get_news(link, "title")
+    text = schedule_script.get_news(link, "text")
+    return render_template('news_page.html', title=title, text=text)
 
 @main_blueprint.route('/login', methods=['GET', 'POST'])
 def login():
     form = LoginForm()
-
     if form.validate_on_submit():
         db_sess = db_session.create_session()
-
         user = db_sess.query(User).filter(
             User.email == form.email.data
         ).first()
-
         if not user or not user.check_password(form.password.data):
             return render_template(
                 'login.html',
                 message="Неверный логин или пароль",
                 form=form
             )
-
         access_token = create_access_token(identity=str(user.id))
-
         response = redirect('/')
-
         set_access_cookies(response, access_token)
-
         return response
-
     return render_template(
         'login.html',
         title='Авторизация',
@@ -105,7 +102,5 @@ def register():
 @main_blueprint.route('/logout')
 def logout():
     response = redirect('/')
-
     unset_jwt_cookies(response)
-
     return response

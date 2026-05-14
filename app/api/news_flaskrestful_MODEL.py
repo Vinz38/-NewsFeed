@@ -57,13 +57,9 @@ class NewsResource(Resource):
 class NewsListResource(Resource):
     def get(self, category):
         session = db_session.create_session()
-        news = session.query(News).all()
-        if category:
-            category = category.split(',')
-        if news.categories in category:
-            return flask.jsonify({'news': [item.to_dict(
+        news = session.query(News).filter(News.categories == category)
+        return flask.jsonify({'news': [item.to_dict(
                 only=('link_news', 'categories', 'live_time')) for item in news]})
-        return flask.jsonify({'news': []})
 
     def post(self, category):
         args = parser.parse_args()

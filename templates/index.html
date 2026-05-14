@@ -15,9 +15,9 @@
   <div class="container-fluid">
     <div>
       {% if user %}
-          <a class="navbar-brand" href="/logout">
+          <p class="navbar-brand">
               {{ user.name }} {{ user.surname }}
-          </a>
+          </p>
       {% else %}
           <p>
               <a class="btn btn-dark" href="/register">Зарегистрироваться</a>
@@ -26,11 +26,10 @@
       {% endif %}
     </div>
     <h3 class="text-black text-center">Новости России и мира сегодня</h3>
-    <a style="font-family: 'Courier New', monospace;" class="navbar-brand" href="#">News feed</a>
+    <a style="font-family: 'Courier New', monospace;" class="navbar-brand" href="/logout">News feed</a>
   </div>
 </nav>
 </header>
-<!-- Begin page content -->
 <main role="main" class="container">
     {% block content %}{% endblock %}
 </main>
