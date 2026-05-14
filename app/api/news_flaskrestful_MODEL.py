@@ -59,7 +59,7 @@ class NewsListResource(Resource):
         session = db_session.create_session()
         news = session.query(News).filter(News.categories == category)
         return flask.jsonify({'news': [item.to_dict(
-                only=('link_news', 'categories', 'live_time')) for item in news]})
+            only=('link_news', 'categories', 'live_time')) for item in news]})
 
     def post(self, category):
         args = parser.parse_args()

@@ -6,6 +6,7 @@ import flask
 import requests
 from flask import request, render_template, redirect, flash
 import schedule_script
+from .forms.edit_profile_form import EditProfileForm
 from .forms.register_form import RegisterForm
 from flask_jwt_extended import create_access_token
 from .forms.login_form import LoginForm

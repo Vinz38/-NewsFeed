@@ -1,9 +1,6 @@
 from datetime import timedelta
-import requests
 from flask import Flask
 from app.roots import main_blueprint
-from data import db_session
-from data.user import User
 from .api.init_api import api_blueprint
 from flask_jwt_extended import JWTManager
 

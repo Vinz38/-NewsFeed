@@ -1,7 +1,6 @@
 from app import create_app
 from data import db_session
 
-
 app = create_app()
 
 if __name__ == '__main__':

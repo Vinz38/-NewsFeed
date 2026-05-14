@@ -30,4 +30,3 @@ class CategoryListResource(Resource):
         session.add(category)
         session.commit()
         return flask.jsonify({'success': 'OK'})
-

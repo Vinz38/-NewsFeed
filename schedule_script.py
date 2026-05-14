@@ -2,7 +2,7 @@ from random import shuffle
 from bs4 import BeautifulSoup
 import requests
 
-TYPE_NEWS = ['technology_and_media', 'sport', 'economics', 'finances', 'politics', 'films']
+TYPE_NEWS = ['technology_and_media', 'sport', 'economics', 'finances', 'politics']
 
 
 def get_list_link_news(type_news):

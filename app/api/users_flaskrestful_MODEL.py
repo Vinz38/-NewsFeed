@@ -15,7 +15,7 @@ update_parser.add_argument(
     'phone_number', help="Phone number cannot be blank!")
 update_parser.add_argument('categories', type=list,
                            location='json', default=[])
-
+update_parser.add_argument('categories', type=list, location='json', default=[])
 parser = reqparse.RequestParser()
 parser.add_argument('user_name', required=True,
                     help="Username cannot be blank!")
@@ -63,7 +63,7 @@ class UserResource(Resource):
 
     def put(self, user_id):
         abort_if_user_not_found(user_id)
-        args = update_parser.parse_args()   # ← здесь новый парсер
+        args = update_parser.parse_args()  # ← здесь новый парсер
         session = db_session.create_session()
         user = session.query(User).get(user_id)
         user.user_name = args['user_name']
@@ -125,6 +125,7 @@ class UserLoginResource(Resource):
         user_data['phone_number'] = user_data.pop(
             'phonenumber', user.phone_number)
         return {'user': user_data}
+
 
 class UserCategoryResource(Resource):
     def get(self, user_id):
