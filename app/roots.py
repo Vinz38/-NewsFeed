@@ -16,7 +16,6 @@ main_blueprint = flask.Blueprint(
     template_folder='templates'
 )
 
-
 @main_blueprint.route('/')
 @main_blueprint.route('/index')
 def index():
@@ -24,12 +23,15 @@ def index():
 
     try:
         verify_jwt_in_request(optional=True)
-
         user_id = get_jwt_identity()
 
         if user_id:
-            db_sess = db_session.create_session()
-            user = db_sess.query(User).get(user_id)
+            resp = requests.get(f'http://127.0.0.1:5000/api/users/{user_id}')
+            if resp.status_code == 200:
+                if "application/json" in resp.headers.get("Content-Type", ""):
+                    user = resp.json().get('user')
+                else:
+                    print("API returned non-json response")
 
     except Exception as e:
         print("JWT ERROR:", e)
@@ -46,32 +48,38 @@ def login():
     form = LoginForm()
 
     if form.validate_on_submit():
-        db_sess = db_session.create_session()
+        
+        response_api = requests.post('http://127.0.0.1:5000/api/login', json={
+            'email': form.email.data,
+            'hashed_password': form.password.data
+        })
 
-        user = db_sess.query(User).filter(
-            User.email == form.email.data
-        ).first()
-
-        if not user or not user.check_password(form.password.data):
+        if response_api.status_code != 200:
+            error_msg = "Произошла ошибка на сервере"
+            if response_api.status_code == 401:
+                error_msg = "Неверный логин или пароль"
+            
             return render_template(
                 'login.html',
-                message="Неверный логин или пароль",
+                message=error_msg,
                 form=form
             )
 
-        access_token = create_access_token(identity=str(user.id))
+        user = response_api.json().get("user")
+
+        access_token = create_access_token(identity=str(user['id']))
 
         response = redirect('/')
 
         set_access_cookies(response, access_token)
 
-        return response
-
+        return response 
+    
     return render_template(
-        'login.html',
-        title='Авторизация',
-        form=form
-    )
+            'login.html',
+            title='Авторизация',
+            form=form
+        )
 
 
 @main_blueprint.route('/register', methods=['GET', 'POST'])

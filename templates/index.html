@@ -16,7 +16,7 @@
     <div>
       {% if user %}
           <a class="navbar-brand" href="/logout">
-              {{ user.name }} {{ user.surname }}
+              {{ user["name"] }} {{ user["surname"] }}
           </a>
       {% else %}
           <p>

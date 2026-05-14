@@ -4,7 +4,6 @@ from flask_restful import Resource, reqparse, abort
 from data import db_session
 from data.categories import Category
 from data.user import User
-from flask_jwt_extended import create_access_token
 import flask
 
 parser = reqparse.RequestParser()
@@ -45,7 +44,9 @@ class UserResource(Resource):
         session = db_session.create_session()
         user = session.query(User).get(user_id)
         user_data = user.to_dict(
-            only=('surname', 'name', 'midlename', 'email', 'phonenumber', 'categories'))
+            only=('surname', 'name', 'midlename', 'email', 'phonenumber', 'categories'),
+            rules=('-categories.users', '-categories.user')
+        )
         user_data['phone_number'] = user_data.pop('phonenumber', user.phone_number)
         return flask.jsonify({'user': user_data})
 
@@ -80,7 +81,6 @@ class UserListResource(Resource):
             user.categories = session.query(Category).filter(Category.id.in_(categories)).all()
         session.commit()
 
-        access_token = create_access_token(identity=user.id)
         return flask.jsonify({'success': 'OK', 'user_id': user.id})
 
 
@@ -92,4 +92,7 @@ class UserLoginResource(Resource):
         if not user or not user.check_password(args['hashed_password']):
             return flask.jsonify({'error': 'Invalid email or password'}), 401
     
-        return flask.jsonify({'sucsess': 'OK', 'user_id': user.id})
+        user_data = user.to_dict(
+            only=('id', 'surname', 'name', 'midlename', 'email', 'phonenumber', 'categories.name'))
+        user_data['phone_number'] = user_data.pop('phonenumber', user.phone_number)
+        return flask.jsonify({'user': user_data})
