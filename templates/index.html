@@ -15,8 +15,8 @@
   <div class="container-fluid">
     <div>
       {% if user %}
-          <a class="navbar-brand" href="/logout">
-              {{ user["name"] }} {{ user["surname"] }}
+          <a class="btn btn-dark" href="/profile">
+              {{ user.user_name }}
           </a>
       {% else %}
           <p>

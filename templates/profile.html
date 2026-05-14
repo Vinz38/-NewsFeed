@@ -1,0 +1,11 @@
+{% extends "index.html" %}
+
+{% block content %}
+<div class="profile-card">
+    <h3>Профиль: {{ user.user_name}}</h3>
+    <p>Email: {{ user.email }}</p>
+    <p>Телефон: {{ user.phone_number }}</p>
+    <p><a href="/edit_profile">Редактировать профиль</a></p>
+    <p><a href="/logout">Выйти</a></p>
+</div>
+{% endblock %}

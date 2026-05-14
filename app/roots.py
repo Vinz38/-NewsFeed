@@ -1,20 +1,21 @@
 from flask_jwt_extended import set_access_cookies
-from flask_jwt_extended import verify_jwt_in_request, get_jwt_identity, unset_jwt_cookies
+from flask_jwt_extended import (
+    verify_jwt_in_request, get_jwt_identity, unset_jwt_cookies
+)
 import flask
 import requests
-from flask import jsonify, make_response, request, render_template, redirect, flash
-from data import db_session
-from data.user import User
+from flask import render_template, redirect, flash
 from .forms.register_form import RegisterForm
-from flask_jwt_extended import create_access_token
 from .forms.login_form import LoginForm
-
+from .forms.edit_profile_form import EditProfileForm
+from flask_jwt_extended import create_access_token
 
 main_blueprint = flask.Blueprint(
     'roots_api',
     __name__,
     template_folder='templates'
 )
+
 
 @main_blueprint.route('/')
 @main_blueprint.route('/index')
@@ -48,7 +49,7 @@ def login():
     form = LoginForm()
 
     if form.validate_on_submit():
-        
+
         response_api = requests.post('http://127.0.0.1:5000/api/login', json={
             'email': form.email.data,
             'hashed_password': form.password.data
@@ -58,7 +59,7 @@ def login():
             error_msg = "Произошла ошибка на сервере"
             if response_api.status_code == 401:
                 error_msg = "Неверный логин или пароль"
-            
+
             return render_template(
                 'login.html',
                 message=error_msg,
@@ -73,13 +74,13 @@ def login():
 
         set_access_cookies(response, access_token)
 
-        return response 
-    
+        return response
+
     return render_template(
-            'login.html',
-            title='Авторизация',
-            form=form
-        )
+        'login.html',
+        title='Авторизация',
+        form=form
+    )
 
 
 @main_blueprint.route('/register', methods=['GET', 'POST'])
@@ -93,9 +94,7 @@ def register():
         if form.categories.data:
             cat_user = form.categories.data
         resp = requests.post('http://127.0.0.1:5000/api/users', json={
-            'surname': form.surname.data,
-            'name': form.name.data,
-            'midlename': form.midlename.data,
+            'user_name': form.user_name.data,
             'hashed_password': form.password.data,
             'email': form.email.data,
             'phone_number': form.phone_number.data,
@@ -108,6 +107,82 @@ def register():
             flash(
                 f'Ошибка: {resp.json().get("error", "Неизвестная ошибка")}', 'danger')
     return render_template('register.html', title='Регистрация', form=form)
+
+
+@main_blueprint.route('/profile')
+def profile():
+    try:
+        verify_jwt_in_request()
+        user_id = get_jwt_identity()
+
+        resp = requests.get(f'http://127.0.0.1:5000/api/users/{user_id}')
+
+        if resp.status_code == 200:
+            if "application/json" in resp.headers.get("Content-Type", ""):
+                user = resp.json().get('user')
+            else:
+                print("API returned non-json response")
+        else:
+            user = None
+
+    except Exception as e:
+        print("JWT ERROR:", e)
+        user = None
+
+    return render_template(
+        'profile.html',
+        user=user,
+        title="Профиль"
+    )
+
+
+@main_blueprint.route('/edit_profile', methods=['GET', 'POST'])
+def edit_profile():
+    verify_jwt_in_request()
+    user_id = get_jwt_identity()
+    
+    resp_api = requests.get(f'http://127.0.0.1:5000/api/users/{user_id}')
+
+    if resp_api.status_code == 200:
+        if "application/json" in resp_api.headers.get("Content-Type", ""):
+            user_data = resp_api.json().get('user')
+        else:
+            print("API returned non-json response")
+    else:
+        user_data = None
+
+    from types import SimpleNamespace
+    user_obj = SimpleNamespace(**user_data)
+
+    form = EditProfileForm(obj=user_obj)
+
+    cat_all = [(k['id'], k['name']) for k in
+               requests.get('http://127.0.0.1:5000/api/categories').json().get('categories', [])]
+    form.categories.choices = cat_all
+
+    if form.validate_on_submit():
+        if form.categories.data:
+            cat_user = form.categories.data
+        updated_data = {
+            'user_name': form.user_name.data,
+            'email': form.email.data,
+            'phone_number': form.phone_number.data,
+            'categories': cat_user
+        }
+
+        resp = requests.put(
+            f'http://127.0.0.1:5000/api/users/{user_id}', json=updated_data)
+        if resp.status_code == 200:
+            if "application/json" in resp.headers.get("Content-Type", ""):
+                flash('Профиль успешно обновлен', 'success')
+                return redirect('/profile')
+            else:
+                print("API returned non-json response")
+        else:
+            flash('Ошибка при обновлении профиля', 'danger')
+
+    return render_template(
+        'edit_profile.html', form=form, title="Редактирование профиля", user=user_data)
 
 
 @main_blueprint.route('/logout')
