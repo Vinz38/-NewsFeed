@@ -1,0 +1,26 @@
+{% extends "index.html" %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-14 col-lg-12">
+        <div class="mt-4">
+            <h4 class="mb-3 text-secondary">Персональная лента</h4>
+            {% if news %}
+                <div class="list-group shadow-sm">
+                    {% for title, link in news %}
+                        <a href="/news_page?link={{ link | urlencode }}"
+                           class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
+                            <span>{{ title }}</span>
+                            <small class="text-muted">→</small>
+                        </a>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="alert alert-info text-center" role="alert">
+                    Для получения новостей авторизуйтесь
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
