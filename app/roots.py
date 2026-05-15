@@ -47,12 +47,23 @@ def index():
 
 @main_blueprint.route('/news_page')
 def news_page():
+    verify_jwt_in_request()
+    user_id = get_jwt_identity()
+    resp = requests.get(f'http://127.0.0.1:5000/api/users/{user_id}')
+
+    if resp.status_code == 200:
+        if "application/json" in resp.headers.get("Content-Type", ""):
+            user = resp.json().get('user')
+        else:
+            print("API returned non-json response")
+    else:
+        user = None
     link = request.args.get('link')
     if not link:
         return redirect('/')
     title = schedule_script.get_news(link, "title")
     text = schedule_script.get_news(link, "text")
-    return render_template('news_page.html', title=title, text=text)
+    return render_template('news_page.html', title=title, text=text, user=user)
 
 
 @main_blueprint.route('/login', methods=['GET', 'POST'])
